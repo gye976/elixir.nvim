@@ -1,53 +1,19 @@
 local M = {}
 
--- 현재 커서 위치의 함수명 추출 (treesitter 기반)
-local function get_current_function()
-  local ts_utils = require("nvim-treesitter.ts_utils")
-  local parsers = require("nvim-treesitter.parsers")
+local core = require("elixir/core")
 
-  local bufnr = vim.api.nvim_get_current_buf()
-  if not parsers.has_parser() then return "" end
-
-  local node = ts_utils.get_node_at_cursor()
-  while node do
-    local type = node:type()
-    if type == "function" or type == "function_definition" or type:match(".*function.*") then
-      local name_node = node:field("name")[1]
-      if name_node then
-        return vim.treesitter.query.get_node_text(name_node, bufnr)
-      end
-    end
-    node = node:parent()
-  end
-  return ""
-end
-
--- winbar에 표시
 local function update_winbar()
-  local exclude_ft = { "NvimTree", "TelescopePrompt", "help", "lazy" }
-  local ft = vim.bo.filetype
-  for _, f in ipairs(exclude_ft) do
-    if ft == f then
-      vim.wo.winbar = ""
-      return
-    end
-  end
-
-  local func = get_current_function()
-  if func and func ~= "" then
-    vim.wo.winbar = " " .. func
-  else
-    vim.wo.winbar = ""
-  end
+  local text = core.get_cur_ctx()
+  if text == "" then text = " " end
+  vim.opt.winbar = text
 end
 
--- autocmd 등록
-function M.setup()
-  vim.api.nvim_create_autocmd({ "CursorMoved", "BufEnter", "InsertLeave" }, {
-    callback = function()
-      pcall(update_winbar)
-    end,
-  })
+local function setup_winbar()
+	vim.api.nvim_set_hl(0, "WinBar", { fg = "#000000", bg = "#eeeeee", bold = true, underline = true })
+
+        vim.api.nvim_create_autocmd({"CursorMoved", "CursorMovedI", "BufEnter", "BufWinEnter"}, {
+          callback = update_winbar,
+        })
 end
 
 local bufferline = require("bufferline")
@@ -72,7 +38,7 @@ bufferline.setup {
       show_buffer_icons = true,
       show_buffer_close_icons = true,
       show_close_icon = true,
-      show_tab_indicators = true,
+      show_tab_indicators = false,
       persist_buffer_sort = true,
       enforce_regular_tabs = false,
   }
@@ -89,5 +55,7 @@ end
 function M.next()
   vim.cmd('BufferLineCycleNext')
 end
+
+setup_winbar()
 
 return M
