@@ -6,18 +6,19 @@ local ts_utils = require("nvim-treesitter.ts_utils")
 local core = require("elixir/core")
 
 -- jump to func
-function M.func()
+function M.def_in_ctx()
         local text, row, col = core.get_cur_ctx()
         if row and col then
+		vim.cmd("normal! m'")
                 vim.api.nvim_win_set_cursor(0, { row + 1, col })
         end
 end
 
-function M.definitions()
+function M.def()
     builtin.lsp_definitions()
 end
 
-function M.references()
+function M.ref()
     builtin.lsp_references()
 end
 
@@ -37,14 +38,14 @@ local function newtab_in_current_buf()
     vim.fn.winrestview(cur_win_view)
 end
 
-function M.definitions_in_newtab()
+function M.def_in_newtab()
     newtab_in_current_buf()
-    M.definitions()
+    M.def()
 end
 
-function M.references_in_newtab()
+function M.ref_in_newtab()
     newtab_in_current_buf()
-    M.references()
+    M.ref()
 end
 
 function M.incoming_in_newtab()
