@@ -44,16 +44,28 @@ bufferline.setup {
   }
 }
 
-function M.close()
-  vim.cmd('tabclose')
-end
-
 function M.prev()
   vim.cmd('BufferLineCyclePrev')
 end
 
 function M.next()
   vim.cmd('BufferLineCycleNext')
+end
+
+function M.close()
+  vim.cmd('tabclose')
+end
+
+function M.new()
+    vim.cmd("tabnew")
+end
+
+function M.new_in_cur_buf()
+    local cur_buf = vim.api.nvim_get_current_buf()
+    local cur_win_view = vim.fn.winsaveview()
+    M.new()
+    vim.api.nvim_set_current_buf(cur_buf)
+    vim.fn.winrestview(cur_win_view)
 end
 
 setup_winbar()

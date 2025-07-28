@@ -4,6 +4,7 @@ local builtin = require('telescope.builtin')
 local ts_utils = require("nvim-treesitter.ts_utils")
 
 local core = require("elixir/core")
+local tab = require("elixir/tab")
 
 -- jump to func
 function M.def_in_ctx()
@@ -30,31 +31,23 @@ function M.outgoing()
     builtin.lsp_outgoing_calls()
 end
 
-local function newtab_in_current_buf()
-    local cur_buf = vim.api.nvim_get_current_buf()
-    local cur_win_view = vim.fn.winsaveview()
-    vim.cmd("tab new")
-    vim.api.nvim_set_current_buf(cur_buf)
-    vim.fn.winrestview(cur_win_view)
-end
-
 function M.def_in_newtab()
-    newtab_in_current_buf()
+    tab.new_in_cur_buf()
     M.def()
 end
 
 function M.ref_in_newtab()
-    newtab_in_current_buf()
+    tab.new_in_cur_buf()
     M.ref()
 end
 
 function M.incoming_in_newtab()
-    newtab_in_current_buf()
+    tab.new_in_cur_buf()
     M.incoming()
 end
 
 function M.outgoing_in_newtab()
-    newtab_in_current_buf()
+    tab.new_in_cur_buf()
     M.outgoing()
 end
 
