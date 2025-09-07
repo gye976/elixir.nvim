@@ -15,6 +15,10 @@ function M.def_in_ctx()
         end
 end
 
+function M.print_cur_ctx()
+	core.print_cur_ctx()
+end
+
 function M.def()
     builtin.lsp_definitions()
 end
