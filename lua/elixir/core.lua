@@ -128,6 +128,20 @@ local function lines_get_name(lines, delimiter, suffix)
         return text
 end
 
+local function node_print_childs(node)
+	local t = node:type()
+	local count = node:named_child_count()
+
+	local str = "childs:"
+	for i = 0, count - 1 do
+		local child = node:named_child(i)
+		local t = child:type()
+		str = str .. t .. ","
+	end
+	str = str .. "/"
+
+	print(str)
+end
 function M.print_cur_ctx()
         local node = ts_utils.get_node_at_cursor()
 	local t = node:type()
@@ -157,18 +171,64 @@ function M.print_cur_ctx()
 	print(str)
 end
 
-local locals = require("nvim-treesitter.locals")
+local function node_find_compound(n)
+	local str = "compound_statement"
+
+	local node = n
+	if node == nil then
+		return nil
+	end
+
+	local t = node:type()
+	if t == str then
+		return node
+	end
+
+	local count = node:named_child_count()
+	for i = 0, count - 1 do
+		local child = node:named_child(i)
+		local t = child:type()
+
+		if t == str then
+			return child
+		end
+	end
+
+	return node_find_compound(node:parent())
+end
+
+function M.get_cur_compound()
+	if check_lang_is_c_cpp() == false then
+		return nil
+	end
+
+        local node = ts_utils.get_node_at_cursor()
+	if node == nil then
+		return nil
+	end
+
+	local c = node_find_compound(node)
+	if c then
+        	local start_row, start_col, end_row, end_col = c:range()
+		return start_row, start_col, end_row, end_col
+	end
+	
+	return nil
+end
 
 function M.get_cur_ctx()
-        local node = ts_utils.get_node_at_cursor()
-
 	if check_lang_is_c_cpp() == false then
-		return " "
+		return nil
+	end
+
+        local node = ts_utils.get_node_at_cursor()
+	if node == nil then
+		return nil
 	end
 
 	local root_node = node_get_root_node(node)
 	if root_node == nil then
-		return " "
+		return nil
 	end
 
         local start_row, start_col, end_row, end_col = root_node:range()
@@ -176,7 +236,7 @@ function M.get_cur_ctx()
 
 	local ctx, c, delimiter = node_get_ctx_node(root_node)
 	if ctx == nil then
-		return " "
+		return nil
 	end
 
 	local text = lines_get_name(lines, delimiter, ' ')

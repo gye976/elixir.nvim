@@ -4,7 +4,9 @@ local core = require("elixir/core")
 
 local function update_winbar()
   local text = core.get_cur_ctx()
-  vim.opt.winbar = text
+  if text then
+	  vim.opt.winbar = text
+  end
 end
 
 local function setup_winbar()

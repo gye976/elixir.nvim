@@ -7,8 +7,32 @@ local core = require("elixir/core")
 local tab = require("elixir/tab")
 
 -- jump to func
-function M.def_in_ctx()
+function M.goto_ctx()
         local text, row, col = core.get_cur_ctx()
+        if row and col then
+		vim.cmd("normal! m'")
+                vim.api.nvim_win_set_cursor(0, { row + 1, col })
+        end
+end
+
+-- jump to compound start
+function M.goto_compound_start()
+        local start_row, start_col, end_row, end_col = core.get_cur_compound()
+	local row = start_row
+	local col = start_col
+
+        if row and col then
+		vim.cmd("normal! m'")
+                vim.api.nvim_win_set_cursor(0, { row + 1, col })
+        end
+end
+
+-- jump to compound end
+function M.goto_compound_end()
+        local start_row, start_col, end_row, end_col = core.get_cur_compound()
+	local row = end_row
+	local col = end_col
+
         if row and col then
 		vim.cmd("normal! m'")
                 vim.api.nvim_win_set_cursor(0, { row + 1, col })
