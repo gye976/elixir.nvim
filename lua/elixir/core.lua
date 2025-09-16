@@ -71,19 +71,14 @@ local function node_get_ctx_node(node)
         local cnt = node:named_child_count()
 	local child, child_t
 
+	local list = enum_ctx_type[t][1]
+	if list == nil then
+		return nil
+	end
+
         for i = 0, cnt - 1 do
                 child = node:named_child(i)
 		child_t = child:type()
-		
-		if child_t == nil or
-		t == nil then
-			return nil
-		end
-
-		local list = enum_ctx_type[t][1]
-		if list == nil then
-			return nil
-		end
 
 		local set = list[child_t]
 		if set then
@@ -231,7 +226,6 @@ function M.get_cur_ctx()
 	local text = lines_get_name(lines, delimiter, ' ')
 
 	local row, col = ctx:range()
-	print(ctx:type(), col, c)
 	col = col + c
 	
 	return text, row, col
