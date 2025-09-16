@@ -29,6 +29,9 @@ local declaration_list = {
 local struct_specifier_list = {
 	type_identifier = { 0, '{' },
 }
+local class_specifier_list = {
+	type_identifier = { 0, '{' },
+}
 local enum_specifier_list = {
 	enumerator_list = { 0, '{' },
 }
@@ -40,6 +43,7 @@ local enum_ctx_type = {
 	type_definition = {type_definition_list, 1},
 	declaration = {declaration_list, 1},
 	struct_specifier = {struct_specifier_list, 1},
+	class_specifier = {struct_specifier_list, 1},
 	enum_specifier = {enum_specifier_list, 1},
 	expression_statement = {expression_statement_list, 1},
 }
