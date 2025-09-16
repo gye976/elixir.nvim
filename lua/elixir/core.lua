@@ -13,13 +13,6 @@ local function check_lang_is_c_cpp()
 	return false
 end
 
-local enum_root_type = {
-	translation_unit = false,
-	preproc_ifdef = false,
-	preproc_if = false,
-	preproc_else = false,
-}
-
 local function_definition_list = {
 	function_declarator = { 0, '{' },
 	pointer_declarator = { 1, '{' },
@@ -31,6 +24,7 @@ local declaration_list = {
 	array_declarator = { 0, '=' },
 	init_declarator = { 0, '=' },
 	function_declarator = { 0, '{' },
+	identifier = { 0, ';' },
 }
 local struct_specifier_list = {
 	type_identifier = { 0, '{' },
@@ -42,41 +36,30 @@ local expression_statement_list = {
 	call_expression = { 0, '{' },
 }
 local enum_ctx_type = {
-	function_definition = function_definition_list,
-	type_definition = type_definition_list,
-	declaration = declaration_list,
-	struct_specifier = struct_specifier_list,
-	enum_specifier = enum_specifier_list,
-	expression_statement = expression_statement_list,
+	function_definition = { function_definition_list, 0 },
+	type_definition = {type_definition_list, 1},
+	declaration = {declaration_list, 1},
+	struct_specifier = {struct_specifier_list, 1},
+	enum_specifier = {enum_specifier_list, 1},
+	expression_statement = {expression_statement_list, 1},
 }
-
-local function node_check_root_type(node) 
-	local t = node:type()	
-
-	if enum_root_type[t] == false then
-		return false
-	end
-
-	return true
-end
 
 local function node_get_root_node(node)
 	local node_list = {}
 
+	local n = nil
+	local max = 99
         while node do
-		table.insert(node_list, node)
+		local t = node:type()
+		if enum_ctx_type[t] and
+		enum_ctx_type[t][2] < max then
+			n = node
+			max = enum_ctx_type[t][2]
+		end
                 node = node:parent()
         end
 
-	for i = #node_list, 1, -1 do
-		node = node_list[i]
-		
-		if node_check_root_type(node) == true then
-			return node
-		end
-	end
-
-	return nil
+	return n
 end
 
 local function node_get_ctx_node(node)
@@ -93,7 +76,7 @@ local function node_get_ctx_node(node)
 			return nil
 		end
 
-		local list = enum_ctx_type[t]
+		local list = enum_ctx_type[t][1]
 		if list == nil then
 			return nil
 		end
@@ -114,6 +97,7 @@ local function lines_get_name(lines, delimiter, suffix)
                 line = line:gsub("^%s+", "")
                 line = line:gsub("\t", " ")
                 line = line:gsub("%s+", " ")
+		line = line:gsub("[\r\n]+", " ")
 
                 end_pos = string.find(line, delimiter)
                 if end_pos then
@@ -157,14 +141,16 @@ function M.print_cur_ctx()
 	str = str .. ' / root:'
 
 	local root_node = node_get_root_node(node)
-	t = root_node:type()
-	str = str .. t .. " / root's childs:"
-	local count = root_node:named_child_count()
-	str = str .. count
-	for i = 0, count - 1 do
-		local child = root_node:named_child(i)
-		local t = child:type()
-		str = str .. t .. ", "
+	if root_node then
+		t = root_node:type()
+		str = str .. t .. " / root's childs:"
+		local count = root_node:named_child_count()
+		str = str .. count
+		for i = 0, count - 1 do
+			local child = root_node:named_child(i)
+			local t = child:type()
+			str = str .. t .. ", "
+		end
 	end
 
 	print(str)
@@ -241,6 +227,7 @@ function M.get_cur_ctx()
 	local text = lines_get_name(lines, delimiter, ' ')
 
 	local row, col = ctx:range()
+	print(ctx:type(), col, c)
 	col = col + c
 	
 	return text, row, col
