@@ -2,12 +2,6 @@ local M = {}
 
 local ts_utils = require("nvim-treesitter.ts_utils")
 
-local function print_idx(expr)
-        local start_row, start_col, end_row, end_col = expr:range()
-	local text = string.format("range: (%d, %d) -> (%d, %d)", start_row, start_col, end_row, end_col)
-	print(text)
-end
-
 local function check_lang_is_c_cpp()
 	local lang = vim.treesitter.language.get_lang(vim.bo.filetype)
 	if lang == 'c' then
@@ -22,6 +16,7 @@ end
 local enum_root_type = {
 	translation_unit = false,
 	preproc_ifdef = false,
+	preproc_if = false,
 	preproc_else = false,
 }
 
@@ -29,9 +24,12 @@ local function_definition_list = {
 	function_declarator = { 0, '{' },
 	pointer_declarator = { 1, '{' },
 }
+local type_definition_list = {
+	type_identifier = { 0, '{' },
+}
 local declaration_list = {
-	array_declarator = { 0, '{' },
-	init_declarator = { 0, '{' },
+	array_declarator = { 0, '=' },
+	init_declarator = { 0, '=' },
 	function_declarator = { 0, '{' },
 }
 local struct_specifier_list = {
@@ -45,6 +43,7 @@ local expression_statement_list = {
 }
 local enum_ctx_type = {
 	function_definition = function_definition_list,
+	type_definition = type_definition_list,
 	declaration = declaration_list,
 	struct_specifier = struct_specifier_list,
 	enum_specifier = enum_specifier_list,
@@ -159,11 +158,11 @@ function M.print_cur_ctx()
 
 	local root_node = node_get_root_node(node)
 	t = root_node:type()
-	str = str .. t .. " / childs"
-	local count = node:named_child_count()
+	str = str .. t .. " / root's childs:"
+	local count = root_node:named_child_count()
 	str = str .. count
 	for i = 0, count - 1 do
-		local child = node:named_child(i)
+		local child = root_node:named_child(i)
 		local t = child:type()
 		str = str .. t .. ", "
 	end

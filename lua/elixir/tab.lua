@@ -6,6 +6,8 @@ local function update_winbar()
   local text = core.get_cur_ctx()
   if text then
 	  vim.opt.winbar = text
+  else 
+	  vim.opt.winbar = " "
   end
 end
 
